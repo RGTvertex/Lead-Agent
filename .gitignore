@@ -1,0 +1,40 @@
+# Virtual Environment
+venv/
+env/
+.env
+
+# Dependencies
+node_modules/
+
+# Python caching
+__pycache__/
+*.pyc
+
+# Local Databases & Output files
+*.sqlite3
+*-journal
+leads_output.json
+.qdrant/
+
+# IDE files
+.vscode/
+.idea/
+
+# Frontend Build
+frontend-web/dist/
+frontend-web/.tsbuildinfo
+
+# User requested exclusions (non-compulsory files)
+docs/
+archive/
+evals/
+frontend/
+frontend-preview/
+frontend_preview/
+tests/
+scripts/
+audit_report.md
+check_db*.py
+test_orchestrator.py
+*.png
+openapi.json

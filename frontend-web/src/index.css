@@ -1,0 +1,103 @@
+@import url('https://fonts.googleapis.com/css2?family=Lexend+Deca:wght@400;500;600;700;800&display=swap');
+
+@import "tailwindcss";
+@config "../tailwind.config.js";
+
+@layer base {
+  :root {
+    --color-brand-50: #fff1f2;
+    --color-brand-100: #ffe4e6;
+    --color-brand-500: #f43f5e;
+    --color-brand-600: #e11d48;
+    --color-brand-700: #be123c;
+    --color-canvas: #fafafa;
+    --color-ink: #09090b;
+    --color-ink-muted: #71717a;
+    --color-ink-light: #a1a1aa;
+    --color-ink-faint: #e4e4e7;
+    --color-surface1: #ffffff;
+    --color-surface2: #f4f4f5;
+    --color-border: #e4e4e7;
+  }
+
+  :root.dark {
+    --color-brand-50: #4c0519;
+    --color-brand-100: #881337;
+    --color-brand-500: #f43f5e;
+    --color-brand-600: #fb7185;
+    --color-brand-700: #fda4af;
+    --color-canvas: #09090b;
+    --color-ink: #fafafa;
+    --color-ink-muted: #a1a1aa;
+    --color-ink-light: #52525b;
+    --color-ink-faint: #27272a;
+    --color-surface1: #18181b;
+    --color-surface2: #27272a;
+    --color-border: #27272a;
+  }
+
+  * { border-color: var(--color-border); }
+  body {
+    background: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: 'Lexend Deca', Inter, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: 'tnum' 1, 'ss01' 1;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-brand-500) !important;
+    outline-offset: 2px !important;
+    border-radius: 3px;
+  }
+}
+
+@layer components {
+  .kanban-column {
+    width: 18rem; flex-shrink: 0; background: var(--color-surface2); border-radius: 8px;
+    display: flex; flex-direction: column; max-height: 100%;
+  }
+  .kanban-column-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px; border-bottom: 1px solid var(--color-border);
+    font-weight: 600; font-size: 14px; color: var(--color-ink);
+  }
+  .kanban-card {
+    background: var(--color-surface1); border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    border: 1px solid var(--color-border); padding: 12px; cursor: grab;
+    transition: box-shadow 200ms cubic-bezier(0.4,0,0.2,1);
+  }
+  .kanban-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
+  .kanban-card:active { cursor: grabbing; }
+
+  .crm-table { width: 100%; font-size: 14px; }
+  .crm-table thead th {
+    text-align: left; padding: 10px 8px; font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-ink-muted);
+    background: var(--color-surface1); position: sticky; top: 0; border-bottom: 2px solid var(--color-border);
+  }
+  .crm-table tbody td {
+    padding: 10px 8px; color: var(--color-ink); border-bottom: 1px solid var(--color-border);
+  }
+  .crm-table tbody tr:hover { background: var(--color-surface2); transition: background-color 100ms; }
+
+  .kpi-number   { font-size: 42px; line-height: 1.1; font-weight: 700; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+  .kpi-number-sm{ font-size: 32px; line-height: 1.15; font-weight: 700; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+
+  .stage-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; flex-shrink: 0; }
+}
+
+@layer utilities {
+  .tabular-nums { font-variant-numeric: tabular-nums; }
+  .drag-zone { min-height: 120px; }
+}
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #DFE3EB; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #9CA3AF; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  .kanban-card, .crm-table tbody tr { transition: none !important; }
+  .deal-confetti { display: none !important; }
+}

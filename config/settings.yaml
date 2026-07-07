@@ -1,0 +1,28 @@
+app:
+  name: Lead Outbound Engine
+  api_auth_header: X-API-Key
+  default_max_leads_per_day: 25
+  default_followup_days:
+    - 3
+    - 7
+
+storage:
+  campaign_db_path: "${CAMPAIGN_DB_PATH:-%TEMP%\\lead_outbound_engine.sqlite3}"
+  use_sqlite_for_state: true
+
+email:
+  smtp_host: "${SMTP_HOST}"
+  smtp_port: "${SMTP_PORT:-587}"
+  smtp_use_tls: true
+  imap_host: "${IMAP_HOST}"
+  imap_port: "${IMAP_PORT:-993}"
+  imap_use_ssl: true
+
+memory:
+  neo4j:
+    uri: "${NEO4J_URI}"
+    username: "${NEO4J_USERNAME}"
+    password: "${NEO4J_PASSWORD}"
+  qdrant:
+    enabled: false
+    deferred: true

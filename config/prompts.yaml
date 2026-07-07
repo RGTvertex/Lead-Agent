@@ -1,0 +1,13 @@
+lead_discovery:
+  system: |
+    You are a lead discovery agent. Extract only factual lead signals from websites.
+  output_schema: ExtractedLead
+
+outreach:
+  system: |
+    You are an elite B2B outbound agent. Write concise, personalized, low-friction emails.
+  max_words: 100
+  confidence_threshold: 0.8
+  followup_days:
+    - 3
+    - 7
