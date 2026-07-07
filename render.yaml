@@ -18,3 +18,14 @@ services:
       - key: ADMIN_PASSWORD
         value: "admin123"
 
+  - type: web
+    name: lead-engine-frontend
+    env: static
+    buildCommand: "cd frontend-web && npm install && npm run build"
+    staticPublishPath: "./frontend-web/dist"
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: lead-engine-backend
+          envVarKey: RENDER_EXTERNAL_URL
