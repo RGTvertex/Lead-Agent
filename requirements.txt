@@ -46,7 +46,7 @@ pydantic_core==2.46.4
 pyparsing==3.3.2
 python-dotenv==1.2.2
 pytz==2026.2
-pywin32==312
+
 PyYAML==6.0.3
 qdrant-client==1.18.0
 requests==2.34.2
