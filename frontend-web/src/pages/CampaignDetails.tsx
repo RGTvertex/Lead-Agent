@@ -65,7 +65,7 @@ export default function CampaignDetails() {
     setApproving(true);
     try {
       const token = localStorage.getItem('auth_token');
-      const res = await fetch(`http://localhost:8000/campaigns/${id}/approve`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/campaigns/${id}/approve`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
