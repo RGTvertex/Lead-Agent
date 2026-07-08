@@ -51,7 +51,7 @@ def lead_discoverer_node(state: CampaignState) -> Dict[str, Any]:
 
         print(f"[Lead Discoverer] AI generated queries: {expanded_queries}")
 
-        from ddgs import DDGS
+        from duckduckgo_search import DDGS
         ddgs = DDGS()
         for q in expanded_queries:
             if platforms:
