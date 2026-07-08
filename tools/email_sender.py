@@ -4,6 +4,14 @@ from uuid import uuid4
 import smtplib
 from email.message import EmailMessage
 
+import socket
+
+# Globally patch getaddrinfo to prefer IPv4 to avoid Render IPv6 Errno 101 / -9
+_orig_getaddrinfo = socket.getaddrinfo
+def _ipv4_getaddrinfo(host, port, family=0, type=0, proto=0, flags=0):
+    return _orig_getaddrinfo(host, port, socket.AF_INET, type, proto, flags)
+socket.getaddrinfo = _ipv4_getaddrinfo
+
 from config.env_loader import _is_placeholder, load_project_env
 
 load_project_env()
@@ -59,8 +67,7 @@ class EmailSender:
         message.set_content(body)
 
         try:
-            # Force IPv4 by binding to 0.0.0.0 to prevent Errno 101 Network is unreachable on Render (IPv6 issue)
-            with smtplib.SMTP(self.smtp_host, self.smtp_port, timeout=30, source_address=('0.0.0.0', 0)) as server:
+            with smtplib.SMTP(self.smtp_host, self.smtp_port, timeout=30) as server:
                 if self.smtp_use_tls:
                     server.starttls()
                 server.login(self.smtp_username, self.smtp_password)
