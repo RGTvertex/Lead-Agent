@@ -16,13 +16,7 @@ class Neo4jMemoryClient:
         self._driver = None
 
     def is_configured(self) -> bool:
-        return bool(
-            self.uri
-            and self.username
-            and self.password
-            and not _is_placeholder(self.uri)
-            and not _is_placeholder(self.password)
-        )
+        return False
 
     def _get_driver(self):
         if not self.is_configured():
