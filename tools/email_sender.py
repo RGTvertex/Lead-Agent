@@ -59,7 +59,8 @@ class EmailSender:
         message.set_content(body)
 
         try:
-            with smtplib.SMTP(self.smtp_host, self.smtp_port, timeout=30) as server:
+            # Force IPv4 by binding to 0.0.0.0 to prevent Errno 101 Network is unreachable on Render (IPv6 issue)
+            with smtplib.SMTP(self.smtp_host, self.smtp_port, timeout=30, source_address=('0.0.0.0', 0)) as server:
                 if self.smtp_use_tls:
                     server.starttls()
                 server.login(self.smtp_username, self.smtp_password)
