@@ -46,6 +46,11 @@ class PlaywrightScraper:
         """
         timeout_seconds = max(timeout / 1000.0, 5.0) # minimum 5 seconds, usually 10-15s
 
+        import urllib3
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        import logging
+        logging.getLogger("trafilatura").setLevel(logging.CRITICAL)
+
         try:
             logger.debug(f"Fast scraping: {url}")
             
@@ -53,7 +58,7 @@ class PlaywrightScraper:
             if not url.startswith('http'):
                 url = f"https://{url}"
 
-            response = self.session.get(url, timeout=timeout_seconds, allow_redirects=True)
+            response = self.session.get(url, timeout=timeout_seconds, allow_redirects=True, verify=False)
             response.raise_for_status()
 
             html = response.text
@@ -69,13 +74,13 @@ class PlaywrightScraper:
             return clean_html
 
         except requests.exceptions.Timeout:
-            logger.error(f"Timeout while fast scraping: {url}")
+            logger.warning(f"Timeout while fast scraping: {url}")
             return None
             
         except requests.exceptions.RequestException as e:
-            logger.error(f"Request error while scraping {url}: {str(e)}")
+            logger.warning(f"Request error while scraping {url}: {str(e)}")
             return None
             
         except Exception as e:
-            logger.exception(f"Unexpected error while scraping {url}: {e}")
+            logger.warning(f"Unexpected error while scraping {url}: {e}")
             return None
