@@ -24,78 +24,81 @@ class CampaignStore:
         return engine.begin()
 
     def _initialize(self):
-        with self._connect() as conn:
-            conn.execute(text("""
-                CREATE TABLE IF NOT EXISTS agent_campaigns (
-                    thread_id TEXT PRIMARY KEY,
-                    campaign_id TEXT NOT NULL,
-                    target_criteria TEXT NOT NULL,
-                    current_status TEXT NOT NULL,
-                    created_at TEXT NOT NULL,
-                    updated_at TEXT NOT NULL,
-                    payload_json TEXT NOT NULL,
-                    user_id TEXT
-                );
-            """))
-            
         try:
             with self._connect() as conn:
-                conn.execute(text("ALTER TABLE agent_campaigns ADD COLUMN user_id TEXT;"))
-        except Exception:
-            pass
+                conn.execute(text("""
+                    CREATE TABLE IF NOT EXISTS agent_campaigns (
+                        thread_id TEXT PRIMARY KEY,
+                        campaign_id TEXT NOT NULL,
+                        target_criteria TEXT NOT NULL,
+                        current_status TEXT NOT NULL,
+                        created_at TEXT NOT NULL,
+                        updated_at TEXT NOT NULL,
+                        payload_json TEXT NOT NULL,
+                        user_id TEXT
+                    );
+                """))
                 
-        with self._connect() as conn:
-            conn.execute(text("""
-                CREATE TABLE IF NOT EXISTS outreach_log (
-                    id SERIAL PRIMARY KEY,
-                    thread_id TEXT NOT NULL,
-                    campaign_id TEXT NOT NULL,
-                    email TEXT,
-                    full_name TEXT,
-                    company_name TEXT,
-                    subject TEXT,
-                    status TEXT,
-                    message_id TEXT,
-                    sent_at TEXT NOT NULL,
-                    delivery_message TEXT,
-                    UNIQUE(thread_id, email, subject, sent_at)
-                );
-            """))
+            try:
+                with self._connect() as conn:
+                    conn.execute(text("ALTER TABLE agent_campaigns ADD COLUMN user_id TEXT;"))
+            except Exception:
+                pass
+                    
+            with self._connect() as conn:
+                conn.execute(text("""
+                    CREATE TABLE IF NOT EXISTS outreach_log (
+                        id SERIAL PRIMARY KEY,
+                        thread_id TEXT NOT NULL,
+                        campaign_id TEXT NOT NULL,
+                        email TEXT,
+                        full_name TEXT,
+                        company_name TEXT,
+                        subject TEXT,
+                        status TEXT,
+                        message_id TEXT,
+                        sent_at TEXT NOT NULL,
+                        delivery_message TEXT,
+                        UNIQUE(thread_id, email, subject, sent_at)
+                    );
+                """))
 
-            conn.execute(text("""
-                CREATE TABLE IF NOT EXISTS reply_log (
-                    id SERIAL PRIMARY KEY,
-                    thread_id TEXT NOT NULL,
-                    email TEXT NOT NULL,
-                    classification TEXT NOT NULL,
-                    subject TEXT,
-                    preview TEXT,
-                    message_id TEXT UNIQUE,
-                    received_at TEXT NOT NULL,
-                    raw_headers TEXT
-                );
-            """))
+                conn.execute(text("""
+                    CREATE TABLE IF NOT EXISTS reply_log (
+                        id SERIAL PRIMARY KEY,
+                        thread_id TEXT NOT NULL,
+                        email TEXT NOT NULL,
+                        classification TEXT NOT NULL,
+                        subject TEXT,
+                        preview TEXT,
+                        message_id TEXT UNIQUE,
+                        received_at TEXT NOT NULL,
+                        raw_headers TEXT
+                    );
+                """))
 
-            conn.execute(text("""
-                CREATE TABLE IF NOT EXISTS followup_log (
-                    id SERIAL PRIMARY KEY,
-                    thread_id TEXT NOT NULL,
-                    email TEXT NOT NULL,
-                    company_name TEXT,
-                    stage INTEGER NOT NULL,
-                    due_at TEXT NOT NULL,
-                    status TEXT NOT NULL,
-                    replied INTEGER NOT NULL DEFAULT 0,
-                    reply_classification TEXT,
-                    created_at TEXT NOT NULL,
-                    updated_at TEXT NOT NULL,
-                    metadata_json TEXT
-                );
-            """))
+                conn.execute(text("""
+                    CREATE TABLE IF NOT EXISTS followup_log (
+                        id SERIAL PRIMARY KEY,
+                        thread_id TEXT NOT NULL,
+                        email TEXT NOT NULL,
+                        company_name TEXT,
+                        stage INTEGER NOT NULL,
+                        due_at TEXT NOT NULL,
+                        status TEXT NOT NULL,
+                        replied INTEGER NOT NULL DEFAULT 0,
+                        reply_classification TEXT,
+                        created_at TEXT NOT NULL,
+                        updated_at TEXT NOT NULL,
+                        metadata_json TEXT
+                    );
+                """))
 
-            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_outreach_thread_email ON outreach_log(thread_id, email);"))
-            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_reply_thread_email ON reply_log(thread_id, email);"))
-            conn.execute(text("CREATE INDEX IF NOT EXISTS idx_followup_thread_status_due ON followup_log(thread_id, status, due_at);"))
+                conn.execute(text("CREATE INDEX IF NOT EXISTS idx_outreach_thread_email ON outreach_log(thread_id, email);"))
+                conn.execute(text("CREATE INDEX IF NOT EXISTS idx_reply_thread_email ON reply_log(thread_id, email);"))
+                conn.execute(text("CREATE INDEX IF NOT EXISTS idx_followup_thread_status_due ON followup_log(thread_id, status, due_at);"))
+        except Exception as e:
+            print(f"[CampaignStore] Warning: Database initialization failed (check POSTGRES_URI). Details: {e}")
 
     def save_snapshot(self, thread_id: str, state: Dict[str, Any]) -> None:
         payload_json = json.dumps(state, default=str)

@@ -11,7 +11,7 @@ load_project_env()
 
 # Try to import Google GenAI for primary embeddings
 try:
-    import google.generativeai as genai
+    from google import genai
     HAS_GEMINI = True
 except ImportError:
     HAS_GEMINI = False
@@ -36,7 +36,7 @@ class QdrantMemoryClient:
         # Setup Embedder FIRST so self.vector_size is known before creating the collection
         self.fallback_model = None
         if HAS_GEMINI and self.gemini_api_key and not _is_placeholder(self.gemini_api_key):
-            genai.configure(api_key=self.gemini_api_key)
+            self.gemini_client = genai.Client(api_key=self.gemini_api_key)
             self.use_gemini = True
             self.vector_size = 768 # Gemini embedding-001 size
         elif HAS_FALLBACK:
@@ -86,12 +86,11 @@ class QdrantMemoryClient:
         """Gets the vector embedding for a piece of text."""
         if self.use_gemini:
             try:
-                result = genai.embed_content(
-                    model="models/text-embedding-004",
-                    content=text,
-                    task_type="retrieval_document",
+                result = self.gemini_client.models.embed_content(
+                    model="text-embedding-004",
+                    contents=text,
                 )
-                return result['embedding']
+                return result.embeddings[0].values
             except Exception as e:
                 print(f"[Qdrant] Gemini Embedding failed, falling back to local: {e}")
                 if self.fallback_model:
