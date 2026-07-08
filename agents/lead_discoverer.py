@@ -51,18 +51,48 @@ def lead_discoverer_node(state: CampaignState) -> Dict[str, Any]:
 
         print(f"[Lead Discoverer] AI generated queries: {expanded_queries}")
 
+        import httpx
+        import urllib.parse
         from ddgs import DDGS
-        ddgs = DDGS()
+        import os
+        
+        tinyfish_key = os.getenv("TINYFISH_API_KEY", "sk-tinyfish-hfIrIkzvQBqTKprprSHYy46nJasEYDL4")
+
         for q in expanded_queries:
             if platforms:
                 q += f" site:{platforms[0]}.com"
-            print(f"[Lead Discoverer] Searching DDG for: {q}")
+                
+            query_success = False
+            print(f"[Lead Discoverer] Searching Tinyfish API for: {q}")
             try:
-                results = ddgs.text(q, max_results=15)
-                for res in results:
-                    target_urls.append(res["href"])
+                encoded_q = urllib.parse.quote(q)
+                url = f"https://api.search.tinyfish.ai?query={encoded_q}"
+                headers = {"X-API-Key": tinyfish_key}
+                
+                with httpx.Client(timeout=30) as client:
+                    resp = client.get(url, headers=headers)
+                    resp.raise_for_status()
+                    data = resp.json()
+                    results = data.get("results", [])
+                    if results:
+                        for res in results:
+                            if "url" in res:
+                                target_urls.append(res["url"])
+                        query_success = True
+                    else:
+                        print(f"[Lead Discoverer] Tinyfish returned 0 results for '{q}'")
             except Exception as e:
-                print(f"[Lead Discoverer] Search failed for query '{q}': {e}")
+                print(f"[Lead Discoverer] Tinyfish search failed for query '{q}': {e}")
+                
+            if not query_success:
+                print(f"[Lead Discoverer] Fallback: Searching DDG for: {q}")
+                try:
+                    ddgs = DDGS()
+                    results = ddgs.text(q, max_results=15)
+                    for res in results:
+                        target_urls.append(res["href"])
+                except Exception as e:
+                    print(f"[Lead Discoverer] DDG Search failed for query '{q}': {e}")
 
         target_urls = list(set(target_urls))
         # Removed hard limit of 10 to allow it to scrape until max_leads is reached
