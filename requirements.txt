@@ -67,7 +67,7 @@ beautifulsoup4
 trafilatura
 google-generativeai
 email-validator
-duckduckgo-search
+ddgs
 langchain-groq
 langchain-openai
 python-jose[cryptography]
