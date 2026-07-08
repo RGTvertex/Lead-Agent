@@ -19,6 +19,7 @@ load_project_env()
 
 class EmailSender:
     def __init__(self):
+        self.resend_api_key = os.getenv("RESEND_API_KEY")
         self.smtp_host = os.getenv("SMTP_HOST")
         self.smtp_port = int(os.getenv("SMTP_PORT", "587"))
         self.smtp_username = os.getenv("SMTP_USERNAME")
@@ -28,6 +29,9 @@ class EmailSender:
         self.smtp_use_tls = os.getenv("SMTP_USE_TLS", "true").lower() == "true"
 
     def is_configured(self) -> bool:
+        if self.resend_api_key and not _is_placeholder(self.resend_api_key):
+            return True
+            
         return bool(
             self.smtp_host
             and self.smtp_username
@@ -49,10 +53,40 @@ class EmailSender:
         if not self.is_configured():
             return {
                 "status": "draft_only",
-                "message": "SMTP not configured, generated draft only.",
+                "message": "Email not configured, generated draft only.",
                 "message_id": f"draft-{uuid4()}",
             }
 
+        # --- RESEND API IMPLEMENTATION ---
+        if self.resend_api_key and not _is_placeholder(self.resend_api_key):
+            try:
+                import resend
+                resend.api_key = self.resend_api_key
+                
+                from_address = self.smtp_from_email if self.smtp_from_email and not _is_placeholder(self.smtp_from_email) else "onboarding@resend.dev"
+                
+                params = {
+                    "from": f"{self.smtp_from_name} <{from_address}>" if "resend.dev" not in from_address else "Acme <onboarding@resend.dev>",
+                    "to": [to_email],
+                    "subject": subject,
+                    "text": body,
+                }
+                
+                email_res = resend.Emails.send(params)
+                
+                return {
+                    "status": "sent",
+                    "message": "Email sent successfully via Resend API.",
+                    "message_id": f"resend-{email_res.get('id', uuid4())}",
+                }
+            except Exception as exc:
+                return {
+                    "status": "failed",
+                    "message": f"Resend API failed: {exc}",
+                    "message_id": None,
+                }
+
+        # --- SMTP IMPLEMENTATION FALLBACK ---
         message = EmailMessage()
         message["Subject"] = subject
         message["From"] = f"{self.smtp_from_name} <{self.smtp_from_email}>"
