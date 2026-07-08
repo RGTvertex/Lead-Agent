@@ -9,6 +9,10 @@ from uuid import uuid4
 import nest_asyncio
 nest_asyncio.apply()
 
+import warnings
+from bs4 import XMLParsedAsHTMLWarning
+warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
+
 from contextlib import asynccontextmanager
 from fastapi import APIRouter, Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
