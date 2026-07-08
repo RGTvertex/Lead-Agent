@@ -51,13 +51,43 @@ class PlaywrightScraper:
         import logging
         logging.getLogger("trafilatura").setLevel(logging.CRITICAL)
 
-        try:
-            logger.debug(f"Fast scraping: {url}")
-            
-            # Ensure URL has scheme
-            if not url.startswith('http'):
-                url = f"https://{url}"
+        # Ensure URL has scheme
+        if not url.startswith('http'):
+            url = f"https://{url}"
 
+        # 1. Try Tinyfish Fetch API first
+        import os
+        import httpx
+        tinyfish_key = os.getenv("TINYFISH_API_KEY", "sk-tinyfish-hfIrIkzvQBqTKprprSHYy46nJasEYDL4")
+        
+        try:
+            logger.debug(f"Attempting Tinyfish Fetch API for: {url}")
+            fetch_url = "https://api.fetch.tinyfish.ai"
+            headers = {
+                "X-API-Key": tinyfish_key,
+                "Content-Type": "application/json"
+            }
+            payload = {"urls": [url]}
+            
+            with httpx.Client(timeout=30) as client:
+                resp = client.post(fetch_url, headers=headers, json=payload)
+                resp.raise_for_status()
+                data = resp.json()
+                
+                results = data.get("results", [])
+                if results and "text" in results[0] and results[0]["text"]:
+                    markdown_text = results[0]["text"]
+                    logger.debug(f"Successfully scraped via Tinyfish ({len(markdown_text):,} characters).")
+                    return markdown_text
+                else:
+                    logger.warning(f"Tinyfish Fetch returned no text for {url}. Falling back to standard scraper.")
+                    
+        except Exception as e:
+            logger.warning(f"Tinyfish Fetch API failed for {url} (Credits exhausted or error): {e}. Falling back...")
+
+        # 2. Fallback to standard requests scraper
+        try:
+            logger.debug(f"Fallback Fast scraping: {url}")
             response = self.session.get(url, timeout=timeout_seconds, allow_redirects=True, verify=False)
             response.raise_for_status()
 
@@ -70,7 +100,7 @@ class PlaywrightScraper:
                 
             clean_html = str(soup)
             
-            logger.debug(f"Successfully scraped ({len(clean_html):,} characters).")
+            logger.debug(f"Successfully scraped via Fallback ({len(clean_html):,} characters).")
             return clean_html
 
         except requests.exceptions.Timeout:
